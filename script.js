@@ -277,48 +277,6 @@ function generateFeatureCheckboxes(container) {
     `).join('');
 }
 
-if (window.location.pathname.includes('index.html')) {
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = document.getElementById('searchInput');
-        const categoryFilter = document.getElementById('categoryFilter');
-
-        if (categoryFilter) {
-            generateCategoryDropdown(categoryFilter);
-        }
-
-        const form = document.getElementById('productForm');
-        if (form) {
-            const categorySelect = document.getElementById('category');
-            if (categorySelect) {
-                generateCategoryDropdown(categorySelect);
-            }
-
-            generateFormFields(form, window.location.pathname.includes('edit-product'));
-
-            const typeContainer = document.querySelector('.type-container');
-            if (typeContainer) generateTypeRadios(typeContainer);
-
-            const featuresContainer = document.querySelector('.features-container');
-            if (featuresContainer) generateFeatureCheckboxes(featuresContainer);
-        }
-
-        if (searchInput && categoryFilter) {
-            searchInput.addEventListener('input', searchProduct);
-            categoryFilter.addEventListener('change', searchProduct);
-        }
-
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        if (itemsPerPageSelect) {
-            itemsPerPageSelect.addEventListener('change', function () {
-                itemsPerPage = parseInt(this.value);
-                currentPage = 1;
-                displayProducts();
-            });
-        }
-    });
-
-}
-
 function sortProducts(field) {
     if (currentSort.field === field) {
         currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
@@ -353,54 +311,140 @@ function updateSortIndicators() {
     }
 }
 
-if (window.location.pathname.includes('edit-product.html')) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('id');
-    const product = products.find(p => p.productId === productId);
-    
-    if (product) {
+const PageController = {
+    pages: {},
+
+    register(pageName, initFunction) {
+        this.pages[pageName] = initFunction;
+    },
+
+    init() {
+        const pagePath = window.location.pathname;
+        const pageName = pagePath.split('/').pop() || 'index.html';
+        
+        if (this.pages[pageName]) {
+            this.pages[pageName]();
+        }
+    }
+};
+
+// Index page controller
+const IndexPage = {
+    init() {
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+
+        if (categoryFilter) {
+            generateCategoryDropdown(categoryFilter);
+        }
+
+        if (searchInput && categoryFilter) {
+            searchInput.addEventListener('input', searchProduct);
+            categoryFilter.addEventListener('change', searchProduct);
+        }
+
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
+        if (itemsPerPageSelect) {
+            itemsPerPageSelect.addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                currentPage = 1;
+                displayProducts();
+            });
+        }
+
+        displayProducts();
+    }
+};
+
+// Edit page controller
+const EditPage = {
+    init() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        const product = products.find(p => p.productId === productId);
+        
+        if (product) {
+            this.initializeForm(product);
+        }
+    },
+
+    initializeForm(product) {
         generateFormFields(document.getElementById('productForm'), true, () => {
             document.getElementById('productId').value = product.productId;
             document.getElementById('productName').value = product.productName;
             document.getElementById('price').value = product.price;
             document.getElementById('description').value = product.description;
             document.getElementById('mfgDate').value = product.mfgDate;
-            debugger
-            const imageInput = document.getElementById('productImage');
-            if (imageInput && product.image) {
-                const previewContainer = document.createElement('div');
-                previewContainer.className = 'mt-2';
-                const preview = document.createElement('img');
-                preview.src = product.image;
-                preview.className = 'img-thumbnail';
-                preview.style.maxWidth = '200px';
-                imageInput.parentNode.appendChild(previewContainer);
-                previewContainer.appendChild(preview);
-            }
 
+            this.setupImagePreview(product);
+            this.setupFormElements(product);
+        });
+    },
+
+    setupImagePreview(product) {
+        const imageInput = document.getElementById('productImage');
+        if (imageInput && product.image) {
+            const previewContainer = document.createElement('div');
+            previewContainer.className = 'mt-2';
+            const preview = document.createElement('img');
+            preview.src = product.image;
+            preview.className = 'img-thumbnail';
+            preview.style.maxWidth = '200px';
+            imageInput.parentNode.appendChild(previewContainer);
+            previewContainer.appendChild(preview);
+        }
+    },
+
+    setupFormElements(product) {
+        const categorySelect = document.getElementById('category');
+        if (categorySelect) {
+            generateCategoryDropdown(categorySelect);
+            categorySelect.value = product.category;
+        }
+
+        const typeContainer = document.querySelector('.type-container');
+        if (typeContainer) {
+            generateTypeRadios(typeContainer);
+            const typeRadio = document.querySelector(`input[name="type"][value="${product.type}"]`);
+            if (typeRadio) typeRadio.checked = true;
+        }
+
+        const featuresContainer = document.querySelector('.features-container');
+        if (featuresContainer) {
+            generateFeatureCheckboxes(featuresContainer);
+            Object.entries(product.features).forEach(([key, value]) => {
+                const checkbox = document.getElementById(key);
+                if (checkbox) checkbox.checked = value;
+            });
+        }
+    }
+};
+
+// Create page controller
+const CreatePage = {
+    init() {
+        const form = document.getElementById('productForm');
+        if (form) {
             const categorySelect = document.getElementById('category');
             if (categorySelect) {
                 generateCategoryDropdown(categorySelect);
-                categorySelect.value = product.category;
             }
+
+            generateFormFields(form, false);
 
             const typeContainer = document.querySelector('.type-container');
-            if (typeContainer) {
-                generateTypeRadios(typeContainer);
-                const typeRadio = document.querySelector(`input[name="type"][value="${product.type}"]`);
-                if (typeRadio) typeRadio.checked = true;
-            }
+            if (typeContainer) generateTypeRadios(typeContainer);
 
             const featuresContainer = document.querySelector('.features-container');
-            if (featuresContainer) {
-                generateFeatureCheckboxes(featuresContainer);
-                Object.entries(product.features).forEach(([key, value]) => {
-                    const checkbox = document.getElementById(key);
-                    if (checkbox) checkbox.checked = value;
-                });
-            }
-        });
+            if (featuresContainer) generateFeatureCheckboxes(featuresContainer);
+        }
     }
-} else if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
-    displayProducts();
-}
+};
+
+// Register pages
+PageController.register('index.html', () => IndexPage.init());
+PageController.register('edit-product.html', () => EditPage.init());
+PageController.register('create-product.html', () => CreatePage.init());
+
+// Initialize on DOM content loaded
+document.addEventListener('DOMContentLoaded', () => PageController.init());
