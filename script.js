@@ -3,7 +3,7 @@ let products = JSON.parse(localStorage.getItem('products')) || [];
 let currentSort = {
     field: null,
     direction: 'asc'
-};
+};          
 
 let currentPage = 1;
 let itemsPerPage = 5;
@@ -32,7 +32,7 @@ function createProduct(event) {
     const imageFile = document.getElementById('productImage').files[0];
     if (imageFile) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             product.image = e.target.result;
             products.push(product);
             localStorage.setItem('products', JSON.stringify(products));
@@ -46,7 +46,7 @@ function updateProduct(event) {
     event.preventDefault();
     const productId = document.getElementById('productId').value;
     const productIndex = products.findIndex(p => p.productId === productId);
-    
+
     if (productIndex !== -1) {
         const updatedProduct = {
             ...products[productIndex],
@@ -66,7 +66,7 @@ function updateProduct(event) {
         const imageFile = document.getElementById('productImage').files[0];
         if (imageFile) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 updatedProduct.image = e.target.result;
                 products[productIndex] = updatedProduct;
                 localStorage.setItem('products', JSON.stringify(products));
@@ -92,13 +92,13 @@ function deleteProduct(productId) {
 function searchProduct() {
     const searchTerm = document.getElementById('searchInput').value.trim();
     const selectedCategory = document.getElementById('categoryFilter').value;
-    
+
     let filteredProducts = products;
-    
+
     if (selectedCategory) {
         filteredProducts = filteredProducts.filter(p => p.category === selectedCategory);
     }
-    
+
     if (searchTerm) {
         filteredProducts = filteredProducts.filter(p => {
             if (/^\d/.test(searchTerm)) {
@@ -108,7 +108,7 @@ function searchProduct() {
             }
         });
     }
-    
+
     if (filteredProducts.length === 0) {
         currentPage = 1;
     }
@@ -118,7 +118,7 @@ function searchProduct() {
 function displayProducts(productsToShow = products) {
     const tableBody = document.getElementById('productTableBody');
     const paginationControls = document.querySelector('.pagination-container');
-    
+
     if (!tableBody) return;
 
     if (!productsToShow || productsToShow.length === 0) {
@@ -158,9 +158,9 @@ function displayProducts(productsToShow = products) {
             <td class="align-middle text-break" style="width: 15%">${product.category}</td>
             <td class="align-middle" style="width: 10%">${product.type}</td>
             <td class="align-middle" style="width: 10%">${Object.entries(product.features)
-                .filter(([, value]) => value)
-                .map(([key]) => `<span class="badge bg-secondary">${key}</span>`)
-                .join(' ')}</td>
+            .filter(([, value]) => value)
+            .map(([key]) => `<span class="badge bg-secondary">${key}</span>`)
+            .join(' ')}</td>
             <td class="align-middle" style="width: 10%">
                 <div class="btn-group btn-group-sm">
                     <a href="edit-product.html?id=${product.productId}" class="btn btn-outline-primary">Edit</a>
@@ -184,9 +184,9 @@ function updatePaginationState(totalItems) {
 
 function changePage(direction) {
     if (!products || products.length === 0) return;
-    
+
     const totalPages = Math.ceil(products.length / itemsPerPage);
-    
+
     if (direction === 'prev' && currentPage > 1) {
         currentPage--;
     } else if (direction === 'next' && currentPage < totalPages) {
@@ -199,7 +199,7 @@ function changePage(direction) {
 function generateFormFields(formElement, isEdit = false, callback) {
     const dynamicFields = document.getElementById('dynamicFields');
     if (!dynamicFields) return;
-    
+
     dynamicFields.innerHTML = '';
 
     const fields = [
@@ -213,12 +213,12 @@ function generateFormFields(formElement, isEdit = false, callback) {
     fields.forEach(field => {
         const div = document.createElement('div');
         div.className = 'mb-3';
-        
+
         const label = document.createElement('label');
         label.className = 'form-label';
         label.htmlFor = field.id;
         label.textContent = field.label;
-        
+
         let input;
         if (field.type === 'textarea') {
             input = document.createElement('textarea');
@@ -227,17 +227,17 @@ function generateFormFields(formElement, isEdit = false, callback) {
             input = document.createElement('input');
             input.type = field.type;
         }
-        
+
         input.className = 'form-control';
         input.id = field.id;
         if (field.required) input.required = true;
         if (field.step) input.step = field.step;
         if (field.accept) input.accept = field.accept;
-        
+
         const feedback = document.createElement('div');
         feedback.className = 'invalid-feedback';
         feedback.textContent = `Please provide a valid ${field.label.toLowerCase()}`;
-        
+
         div.appendChild(label);
         div.appendChild(input);
         div.appendChild(feedback);
@@ -248,10 +248,10 @@ function generateFormFields(formElement, isEdit = false, callback) {
 }
 
 function generateCategoryDropdown(selectElement) {
-    const options = CONFIG.categories.map(cat => 
+    const options = CONFIG.categories.map(cat =>
         `<option value="${cat.id}">${cat.label}</option>`
     ).join('');
-    
+
     selectElement.innerHTML = `
         <option value="">Select a category</option>
         ${options}
@@ -277,44 +277,47 @@ function generateFeatureCheckboxes(container) {
     `).join('');
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const categoryFilter = document.getElementById('categoryFilter');
-    
-    if (categoryFilter) {
-        generateCategoryDropdown(categoryFilter);
-    }
-    
-    const form = document.getElementById('productForm');
-    if (form) {
-        const categorySelect = document.getElementById('category');
-        if (categorySelect) {
-            generateCategoryDropdown(categorySelect);
-        }
-        
-        generateFormFields(form, window.location.pathname.includes('edit-product'));
-        
-        const typeContainer = document.querySelector('.type-container');
-        if (typeContainer) generateTypeRadios(typeContainer);
-        
-        const featuresContainer = document.querySelector('.features-container');
-        if (featuresContainer) generateFeatureCheckboxes(featuresContainer);
-    }
-    
-    if (searchInput && categoryFilter) {
-        searchInput.addEventListener('input', searchProduct);
-        categoryFilter.addEventListener('change', searchProduct);
-    }
+if (window.location.pathname.includes('index.html')) {
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
 
-    const itemsPerPageSelect = document.getElementById('itemsPerPage');
-    if (itemsPerPageSelect) {
-        itemsPerPageSelect.addEventListener('change', function() {
-            itemsPerPage = parseInt(this.value);
-            currentPage = 1;
-            displayProducts();
-        });
-    }
-});
+        if (categoryFilter) {
+            generateCategoryDropdown(categoryFilter);
+        }
+
+        const form = document.getElementById('productForm');
+        if (form) {
+            const categorySelect = document.getElementById('category');
+            if (categorySelect) {
+                generateCategoryDropdown(categorySelect);
+            }
+
+            generateFormFields(form, window.location.pathname.includes('edit-product'));
+
+            const typeContainer = document.querySelector('.type-container');
+            if (typeContainer) generateTypeRadios(typeContainer);
+
+            const featuresContainer = document.querySelector('.features-container');
+            if (featuresContainer) generateFeatureCheckboxes(featuresContainer);
+        }
+
+        if (searchInput && categoryFilter) {
+            searchInput.addEventListener('input', searchProduct);
+            categoryFilter.addEventListener('change', searchProduct);
+        }
+
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
+        if (itemsPerPageSelect) {
+            itemsPerPageSelect.addEventListener('change', function () {
+                itemsPerPage = parseInt(this.value);
+                currentPage = 1;
+                displayProducts();
+            });
+        }
+    });
+
+}
 
 function sortProducts(field) {
     if (currentSort.field === field) {
@@ -328,7 +331,7 @@ function sortProducts(field) {
         let comparison = 0;
         if (a[field] < b[field]) comparison = -1;
         if (a[field] > b[field]) comparison = 1;
-        
+
         return currentSort.direction === 'asc' ? comparison : -comparison;
     });
 
@@ -341,7 +344,7 @@ function updateSortIndicators() {
     document.querySelectorAll('th').forEach(th => {
         th.textContent = th.textContent.replace(' ↑', '').replace(' ↓', '');
     });
-    
+
     if (currentSort.field) {
         const th = document.querySelector(`th[onclick="sortProducts('${currentSort.field}')"]`);
         if (th) {
@@ -362,7 +365,7 @@ if (window.location.pathname.includes('edit-product.html')) {
             document.getElementById('price').value = product.price;
             document.getElementById('description').value = product.description;
             document.getElementById('mfgDate').value = product.mfgDate;
-            
+            debugger
             const imageInput = document.getElementById('productImage');
             if (imageInput && product.image) {
                 const previewContainer = document.createElement('div');
@@ -380,14 +383,14 @@ if (window.location.pathname.includes('edit-product.html')) {
                 generateCategoryDropdown(categorySelect);
                 categorySelect.value = product.category;
             }
-            
+
             const typeContainer = document.querySelector('.type-container');
             if (typeContainer) {
                 generateTypeRadios(typeContainer);
                 const typeRadio = document.querySelector(`input[name="type"][value="${product.type}"]`);
                 if (typeRadio) typeRadio.checked = true;
             }
-            
+
             const featuresContainer = document.querySelector('.features-container');
             if (featuresContainer) {
                 generateFeatureCheckboxes(featuresContainer);
