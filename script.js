@@ -145,10 +145,99 @@ function displayProducts(productsToShow = products) {
     `).join('');
 }
 
+function generateFormFields(formElement, isEdit = false) {
+    const dynamicFields = document.getElementById('dynamicFields');
+    if (!dynamicFields) return;
+
+    Object.entries(CONFIG.formFields).forEach(([fieldId, field]) => {
+        const div = document.createElement('div');
+        div.className = 'mb-3';
+        
+        const label = document.createElement('label');
+        label.className = 'form-label';
+        label.htmlFor = fieldId;
+        label.textContent = field.label;
+        
+        let input;
+        if (field.type === 'textarea') {
+            input = document.createElement('textarea');
+            input.rows = 3;
+        } else {
+            input = document.createElement('input');
+            input.type = field.type;
+        }
+        
+        input.className = 'form-control';
+        input.id = fieldId;
+        Object.entries(field.validation).forEach(([key, value]) => {
+            if (key !== 'errorMessage') input[key] = value;
+        });
+        
+        const feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback';
+        feedback.textContent = field.validation.errorMessage;
+        
+        div.appendChild(label);
+        div.appendChild(input);
+        div.appendChild(feedback);
+        dynamicFields.appendChild(div);
+    });
+}
+
+function generateCategoryDropdown(selectElement) {
+    const options = CONFIG.categories.map(cat => 
+        `<option value="${cat.id}">${cat.label}</option>`
+    ).join('');
+    
+    selectElement.innerHTML = `
+        <option value="">Select a category</option>
+        ${options}
+    `;
+}
+
+function generateTypeRadios(container) {
+    container.innerHTML = CONFIG.productTypes.map(type => `
+        <div class="mb-2">
+            <input type="radio" class="form-check-input" 
+                   name="type" value="${type.id}" required>
+            <label class="form-check-label">${type.label}</label>
+        </div>
+    `).join('');
+}
+
+function generateFeatureCheckboxes(container) {
+    container.innerHTML = CONFIG.features.map(feature => `
+        <div class="mb-2">
+            <input type="checkbox" class="form-check-input" id="${feature.id}">
+            <label class="form-check-label">${feature.label}</label>
+        </div>
+    `).join('');
+}
+
 // Add event listeners for real-time search
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
+    
+    if (categoryFilter) {
+        generateCategoryDropdown(categoryFilter);
+    }
+    
+    const form = document.getElementById('productForm');
+    if (form) {
+        const categorySelect = document.getElementById('category');
+        if (categorySelect) {
+            generateCategoryDropdown(categorySelect);
+        }
+        
+        generateFormFields(form, window.location.pathname.includes('edit-product'));
+        
+        const typeContainer = document.querySelector('.type-container');
+        if (typeContainer) generateTypeRadios(typeContainer);
+        
+        const featuresContainer = document.querySelector('.features-container');
+        if (featuresContainer) generateFeatureCheckboxes(featuresContainer);
+    }
     
     if (searchInput && categoryFilter) {
         searchInput.addEventListener('input', searchProduct);
@@ -156,32 +245,87 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Add this at the top with other global variables
+let currentSort = {
+    field: null,
+    direction: 'asc'
+};
+
 function sortProducts(field) {
+    // If clicking the same field, toggle direction
+    if (currentSort.field === field) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        // If clicking new field, default to ascending
+        currentSort.field = field;
+        currentSort.direction = 'asc';
+    }
+
     products.sort((a, b) => {
-        if (a[field] < b[field]) return -1;
-        if (a[field] > b[field]) return 1;
-        return 0;
+        let comparison = 0;
+        if (a[field] < b[field]) comparison = -1;
+        if (a[field] > b[field]) comparison = 1;
+        
+        // Reverse if descending
+        return currentSort.direction === 'asc' ? comparison : -comparison;
     });
+
+    // Update sort indicators in UI
+    updateSortIndicators();
     displayProducts();
 }
 
-// Initialize page
+function updateSortIndicators() {
+    // Remove all existing indicators
+    document.querySelectorAll('th').forEach(th => {
+        th.textContent = th.textContent.replace(' ↑', '').replace(' ↓', '');
+    });
+    
+    // Add indicator to current sort column
+    if (currentSort.field) {
+        const th = document.querySelector(`th[onclick="sortProducts('${currentSort.field}')"]`);
+        if (th) {
+            th.textContent += currentSort.direction === 'asc' ? ' ↑' : ' ↓';
+        }
+    }
+}
+
+// Update the edit product initialization
 if (window.location.pathname.includes('edit-product.html')) {
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
     const product = products.find(p => p.productId === productId);
+    
     if (product) {
+        // Special handling for hidden productId
         document.getElementById('productId').value = product.productId;
-        document.getElementById('productName').value = product.productName;
-        document.getElementById('price').value = product.price;
-        document.getElementById('description').value = product.description;
-        document.getElementById('mfgDate').value = product.mfgDate;
-        document.getElementById('category').value = product.category;
-        document.querySelector(`input[name="type"][value="${product.type}"]`).checked = true;
-        document.getElementById('outOfStock').checked = product.features.outOfStock;
-        document.getElementById('freeShipping').checked = product.features.freeShipping;
-        document.getElementById('warranty').checked = product.features.warranty;
-        document.getElementById('currentImage').src = product.image;
+        
+        // Set values for dynamically generated fields
+        Object.keys(CONFIG.formFields).forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                if (fieldId === 'productImage') {
+                    // Handle image preview
+                    const preview = document.createElement('img');
+                    preview.src = product.image;
+                    preview.className = 'mt-2';
+                    preview.style.maxWidth = '200px';
+                    element.parentNode.appendChild(preview);
+                } else {
+                    element.value = product[fieldId];
+                }
+            }
+        });
+
+        // Set radio button for type
+        const typeRadio = document.querySelector(`input[name="type"][value="${product.type}"]`);
+        if (typeRadio) typeRadio.checked = true;
+
+        // Set checkboxes for features
+        Object.entries(product.features).forEach(([key, value]) => {
+            const checkbox = document.getElementById(key);
+            if (checkbox) checkbox.checked = value;
+        });
     }
 } else if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
     displayProducts();

@@ -31,16 +31,12 @@
                         <input type="text" id="searchInput" class="form-control" 
                                placeholder="Search by ID or Name">
                         <select id="categoryFilter" class="form-select" style="width: 200px;">
-                            <option value="">All Categories</option>
-                            <option value="Electronics">Electronics</option>
-                            <option value="Clothing">Clothing</option>
-                            <option value="Books">Books</option>
                         </select>
                         <button class="btn btn-primary" onclick="searchProduct()">Search</button>
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
                                 <th onclick="sortProducts('productId')" style="cursor: pointer">Product ID ⇅</th>
@@ -53,7 +49,7 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="productTableBody">
+                        <tbody id="productTableBody" class="align-middle">
                         </tbody>
                     </table>
                 </div>
@@ -68,6 +64,7 @@
         </a>
     </div>
 
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
