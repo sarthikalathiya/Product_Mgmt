@@ -95,26 +95,22 @@ function searchProduct() {
     
     let filteredProducts = products;
     
-    // Apply category filter if selected
     if (selectedCategory) {
         filteredProducts = filteredProducts.filter(p => p.category === selectedCategory);
     }
     
-    // Apply search term filter
     if (searchTerm) {
         filteredProducts = filteredProducts.filter(p => {
             if (/^\d/.test(searchTerm)) {
-                // If search term starts with a digit, search by ID
                 return p.productId.includes(searchTerm);
             } else {
-                // If search term starts with a letter, search by name
                 return p.productName.toLowerCase().includes(searchTerm.toLowerCase());
             }
         });
     }
     
     if (filteredProducts.length === 0) {
-        currentPage = 1; // Reset to first page when no results
+        currentPage = 1;
     }
     displayProducts(filteredProducts);
 }
@@ -133,27 +129,22 @@ function displayProducts(productsToShow = products) {
                 </td>
             </tr>
         `;
-        // Hide pagination controls
         if (paginationControls) {
             paginationControls.style.display = 'none';
         }
         return;
     }
 
-    // Show pagination controls
     if (paginationControls) {
         paginationControls.style.display = 'block';
     }
 
-    // Calculate pagination
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedProducts = productsToShow.slice(startIndex, endIndex);
 
-    // Update current page display
     document.getElementById('currentPage').textContent = `Page ${currentPage}`;
 
-    // Display paginated products
     tableBody.innerHTML = paginatedProducts.map(product => `
         <tr class="align-middle" style="height: 60px;">
             <td class="align-middle text-break" style="width: 15%">${product.productId}</td>
@@ -179,7 +170,6 @@ function displayProducts(productsToShow = products) {
         </tr>
     `).join('');
 
-    // Update pagination buttons state
     updatePaginationState(productsToShow.length);
 }
 
@@ -206,17 +196,27 @@ function changePage(direction) {
     displayProducts();
 }
 
-function generateFormFields(formElement, isEdit = false) {
+function generateFormFields(formElement, isEdit = false, callback) {
     const dynamicFields = document.getElementById('dynamicFields');
     if (!dynamicFields) return;
+    
+    dynamicFields.innerHTML = '';
 
-    Object.entries(CONFIG.formFields).forEach(([fieldId, field]) => {
+    const fields = [
+        { id: 'productName', label: 'Product Name', type: 'text', required: true },
+        { id: 'productImage', label: 'Product Image', type: 'file', accept: 'image/*' },
+        { id: 'price', label: 'Price', type: 'number', required: true, step: '0.01' },
+        { id: 'description', label: 'Description', type: 'textarea', required: true },
+        { id: 'mfgDate', label: 'Manufacturing Date', type: 'date', required: true }
+    ];
+
+    fields.forEach(field => {
         const div = document.createElement('div');
         div.className = 'mb-3';
         
         const label = document.createElement('label');
         label.className = 'form-label';
-        label.htmlFor = fieldId;
+        label.htmlFor = field.id;
         label.textContent = field.label;
         
         let input;
@@ -229,20 +229,22 @@ function generateFormFields(formElement, isEdit = false) {
         }
         
         input.className = 'form-control';
-        input.id = fieldId;
-        Object.entries(field.validation).forEach(([key, value]) => {
-            if (key !== 'errorMessage') input[key] = value;
-        });
+        input.id = field.id;
+        if (field.required) input.required = true;
+        if (field.step) input.step = field.step;
+        if (field.accept) input.accept = field.accept;
         
         const feedback = document.createElement('div');
         feedback.className = 'invalid-feedback';
-        feedback.textContent = field.validation.errorMessage;
+        feedback.textContent = `Please provide a valid ${field.label.toLowerCase()}`;
         
         div.appendChild(label);
         div.appendChild(input);
         div.appendChild(feedback);
         dynamicFields.appendChild(div);
     });
+
+    if (callback) callback();
 }
 
 function generateCategoryDropdown(selectElement) {
@@ -275,7 +277,6 @@ function generateFeatureCheckboxes(container) {
     `).join('');
 }
 
-// Add event listeners for real-time search
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
@@ -305,23 +306,20 @@ document.addEventListener('DOMContentLoaded', function() {
         categoryFilter.addEventListener('change', searchProduct);
     }
 
-    // Add items per page change handler
     const itemsPerPageSelect = document.getElementById('itemsPerPage');
     if (itemsPerPageSelect) {
         itemsPerPageSelect.addEventListener('change', function() {
             itemsPerPage = parseInt(this.value);
-            currentPage = 1; // Reset to first page
+            currentPage = 1;
             displayProducts();
         });
     }
 });
 
 function sortProducts(field) {
-    // If clicking the same field, toggle direction
     if (currentSort.field === field) {
         currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
     } else {
-        // If clicking new field, default to ascending
         currentSort.field = field;
         currentSort.direction = 'asc';
     }
@@ -331,23 +329,19 @@ function sortProducts(field) {
         if (a[field] < b[field]) comparison = -1;
         if (a[field] > b[field]) comparison = 1;
         
-        // Reverse if descending
         return currentSort.direction === 'asc' ? comparison : -comparison;
     });
 
-    // Update sort indicators in UI
     updateSortIndicators();
-    currentPage = 1; // Reset to first page when sorting
+    currentPage = 1;
     displayProducts();
 }
 
 function updateSortIndicators() {
-    // Remove all existing indicators
     document.querySelectorAll('th').forEach(th => {
         th.textContent = th.textContent.replace(' ↑', '').replace(' ↓', '');
     });
     
-    // Add indicator to current sort column
     if (currentSort.field) {
         const th = document.querySelector(`th[onclick="sortProducts('${currentSort.field}')"]`);
         if (th) {
@@ -356,41 +350,52 @@ function updateSortIndicators() {
     }
 }
 
-// Update the edit product initialization
 if (window.location.pathname.includes('edit-product.html')) {
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
     const product = products.find(p => p.productId === productId);
     
     if (product) {
-        // Special handling for hidden productId
-        document.getElementById('productId').value = product.productId;
-        
-        // Set values for dynamically generated fields
-        Object.keys(CONFIG.formFields).forEach(fieldId => {
-            const element = document.getElementById(fieldId);
-            if (element) {
-                if (fieldId === 'productImage') {
-                    // Handle image preview
-                    const preview = document.createElement('img');
-                    preview.src = product.image;
-                    preview.className = 'mt-2';
-                    preview.style.maxWidth = '200px';
-                    element.parentNode.appendChild(preview);
-                } else {
-                    element.value = product[fieldId];
-                }
+        generateFormFields(document.getElementById('productForm'), true, () => {
+            document.getElementById('productId').value = product.productId;
+            document.getElementById('productName').value = product.productName;
+            document.getElementById('price').value = product.price;
+            document.getElementById('description').value = product.description;
+            document.getElementById('mfgDate').value = product.mfgDate;
+            
+            const imageInput = document.getElementById('productImage');
+            if (imageInput && product.image) {
+                const previewContainer = document.createElement('div');
+                previewContainer.className = 'mt-2';
+                const preview = document.createElement('img');
+                preview.src = product.image;
+                preview.className = 'img-thumbnail';
+                preview.style.maxWidth = '200px';
+                imageInput.parentNode.appendChild(previewContainer);
+                previewContainer.appendChild(preview);
             }
-        });
 
-        // Set radio button for type
-        const typeRadio = document.querySelector(`input[name="type"][value="${product.type}"]`);
-        if (typeRadio) typeRadio.checked = true;
-
-        // Set checkboxes for features
-        Object.entries(product.features).forEach(([key, value]) => {
-            const checkbox = document.getElementById(key);
-            if (checkbox) checkbox.checked = value;
+            const categorySelect = document.getElementById('category');
+            if (categorySelect) {
+                generateCategoryDropdown(categorySelect);
+                categorySelect.value = product.category;
+            }
+            
+            const typeContainer = document.querySelector('.type-container');
+            if (typeContainer) {
+                generateTypeRadios(typeContainer);
+                const typeRadio = document.querySelector(`input[name="type"][value="${product.type}"]`);
+                if (typeRadio) typeRadio.checked = true;
+            }
+            
+            const featuresContainer = document.querySelector('.features-container');
+            if (featuresContainer) {
+                generateFeatureCheckboxes(featuresContainer);
+                Object.entries(product.features).forEach(([key, value]) => {
+                    const checkbox = document.getElementById(key);
+                    if (checkbox) checkbox.checked = value;
+                });
+            }
         });
     }
 } else if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
