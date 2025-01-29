@@ -38,20 +38,46 @@
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
-                            <tr>
-                                <th onclick="sortProducts('productId')" style="cursor: pointer">Product ID ⇅</th>
-                                <th onclick="sortProducts('productName')" style="cursor: pointer">Product Name ⇅</th>
-                                <th>Image</th>
-                                <th onclick="sortProducts('price')" style="cursor: pointer">Price ⇅</th>
-                                <th>Category</th>
-                                <th>Type</th>
-                                <th>Features</th>
-                                <th>Actions</th>
+                            <tr class="align-middle" style="height: 60px;">
+                                <th style="cursor: pointer; width: 15%" onclick="sortProducts('productId')">Product ID ⇅</th>
+                                <th style="cursor: pointer; width: 15%" onclick="sortProducts('productName')">Product Name ⇅</th>
+                                <th style="width: 10%">Image</th>
+                                <th style="cursor: pointer; width: 10%" onclick="sortProducts('price')">Price ⇅</th>
+                                <th style="width: 15%">Category</th>
+                                <th style="width: 10%">Type</th>
+                                <th style="width: 10%">Features</th>
+                                <th style="width: 10%">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="productTableBody" class="align-middle">
                         </tbody>
                     </table>
+                    <!-- Add pagination controls with container -->
+                    <div class="pagination-container mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="form-label mb-0">Items per page:</label>
+                                <select id="itemsPerPage" class="form-select" style="width: auto;">
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="15">15</option>
+                                </select>
+                            </div>
+                            <nav aria-label="Product navigation">
+                                <ul class="pagination mb-0">
+                                    <li class="page-item">
+                                        <button class="page-link" onclick="changePage('prev')">&laquo;</button>
+                                    </li>
+                                    <li class="page-item">
+                                        <span class="page-link" id="currentPage">Page 1</span>
+                                    </li>
+                                    <li class="page-item">
+                                        <button class="page-link" onclick="changePage('next')">&raquo;</button>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

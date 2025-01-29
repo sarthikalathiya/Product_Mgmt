@@ -1,5 +1,13 @@
 let products = JSON.parse(localStorage.getItem('products')) || [];
 
+let currentSort = {
+    field: null,
+    direction: 'asc'
+};
+
+let currentPage = 1;
+let itemsPerPage = 5;
+
 function generateProductId() {
     return Date.now().toString();
 }
@@ -105,14 +113,19 @@ function searchProduct() {
         });
     }
     
+    if (filteredProducts.length === 0) {
+        currentPage = 1; // Reset to first page when no results
+    }
     displayProducts(filteredProducts);
 }
 
 function displayProducts(productsToShow = products) {
     const tableBody = document.getElementById('productTableBody');
+    const paginationControls = document.querySelector('.pagination-container');
+    
     if (!tableBody) return;
 
-    if (productsToShow.length === 0) {
+    if (!productsToShow || productsToShow.length === 0) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="8" class="text-center py-4">
@@ -120,22 +133,44 @@ function displayProducts(productsToShow = products) {
                 </td>
             </tr>
         `;
+        // Hide pagination controls
+        if (paginationControls) {
+            paginationControls.style.display = 'none';
+        }
         return;
     }
 
-    tableBody.innerHTML = productsToShow.map(product => `
-        <tr>
-            <td>${product.productId}</td>
-            <td>${product.productName}</td>
-            <td><img src="${product.image}" alt="${product.productName}" class="img-thumbnail" style="max-width: 50px"></td>
-            <td>$${product.price.toFixed(2)}</td>
-            <td>${product.category}</td>
-            <td>${product.type}</td>
-            <td>${Object.entries(product.features)
+    // Show pagination controls
+    if (paginationControls) {
+        paginationControls.style.display = 'block';
+    }
+
+    // Calculate pagination
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedProducts = productsToShow.slice(startIndex, endIndex);
+
+    // Update current page display
+    document.getElementById('currentPage').textContent = `Page ${currentPage}`;
+
+    // Display paginated products
+    tableBody.innerHTML = paginatedProducts.map(product => `
+        <tr class="align-middle" style="height: 60px;">
+            <td class="align-middle text-break" style="width: 15%">${product.productId}</td>
+            <td class="align-middle text-break" style="width: 20%">${product.productName}</td>
+            <td class="align-middle" style="width: 10%">
+                <img src="${product.image}" alt="${product.productName}" 
+                     class="img-thumbnail" 
+                     style="width: 50px; height: 50px; object-fit: cover;">
+            </td>
+            <td class="align-middle" style="width: 10%">$${product.price.toFixed(2)}</td>
+            <td class="align-middle text-break" style="width: 15%">${product.category}</td>
+            <td class="align-middle" style="width: 10%">${product.type}</td>
+            <td class="align-middle" style="width: 10%">${Object.entries(product.features)
                 .filter(([, value]) => value)
                 .map(([key]) => `<span class="badge bg-secondary">${key}</span>`)
                 .join(' ')}</td>
-            <td>
+            <td class="align-middle" style="width: 10%">
                 <div class="btn-group btn-group-sm">
                     <a href="edit-product.html?id=${product.productId}" class="btn btn-outline-primary">Edit</a>
                     <button onclick="deleteProduct('${product.productId}')" class="btn btn-outline-danger">Delete</button>
@@ -143,6 +178,32 @@ function displayProducts(productsToShow = products) {
             </td>
         </tr>
     `).join('');
+
+    // Update pagination buttons state
+    updatePaginationState(productsToShow.length);
+}
+
+function updatePaginationState(totalItems) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const prevButton = document.querySelector('.page-item:first-child');
+    const nextButton = document.querySelector('.page-item:last-child');
+
+    prevButton.classList.toggle('disabled', currentPage === 1);
+    nextButton.classList.toggle('disabled', currentPage === totalPages);
+}
+
+function changePage(direction) {
+    if (!products || products.length === 0) return;
+    
+    const totalPages = Math.ceil(products.length / itemsPerPage);
+    
+    if (direction === 'prev' && currentPage > 1) {
+        currentPage--;
+    } else if (direction === 'next' && currentPage < totalPages) {
+        currentPage++;
+    }
+
+    displayProducts();
 }
 
 function generateFormFields(formElement, isEdit = false) {
@@ -243,13 +304,17 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', searchProduct);
         categoryFilter.addEventListener('change', searchProduct);
     }
-});
 
-// Add this at the top with other global variables
-let currentSort = {
-    field: null,
-    direction: 'asc'
-};
+    // Add items per page change handler
+    const itemsPerPageSelect = document.getElementById('itemsPerPage');
+    if (itemsPerPageSelect) {
+        itemsPerPageSelect.addEventListener('change', function() {
+            itemsPerPage = parseInt(this.value);
+            currentPage = 1; // Reset to first page
+            displayProducts();
+        });
+    }
+});
 
 function sortProducts(field) {
     // If clicking the same field, toggle direction
@@ -272,6 +337,7 @@ function sortProducts(field) {
 
     // Update sort indicators in UI
     updateSortIndicators();
+    currentPage = 1; // Reset to first page when sorting
     displayProducts();
 }
 
