@@ -3,9 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PMS</title>
+    <title>Product Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .floating-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+        .floating-button .btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+    </style>
 </head>
-<body>
-    
+<body class="bg-light">
+    <div class="container mt-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="card-title mb-0">Product Management System</h2>
+                    <div class="d-flex gap-2" style="width: 60%;">
+                        <input type="text" id="searchInput" class="form-control" 
+                               placeholder="Search by ID or Name">
+                        <select id="categoryFilter" class="form-select" style="width: 200px;">
+                            <option value="">All Categories</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Books">Books</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="searchProduct()">Search</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th onclick="sortProducts('productId')" style="cursor: pointer">Product ID ⇅</th>
+                                <th onclick="sortProducts('productName')" style="cursor: pointer">Product Name ⇅</th>
+                                <th>Image</th>
+                                <th onclick="sortProducts('price')" style="cursor: pointer">Price ⇅</th>
+                                <th>Category</th>
+                                <th>Type</th>
+                                <th>Features</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button for Add New Product -->
+    <div class="floating-button">
+        <a href="create-product.html" class="btn btn-primary" title="Add New Product">
+            <span>+</span>
+        </a>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>

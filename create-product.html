@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Product</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="text-center mb-4">Create New Product</h2>
+                        <form id="productForm" onsubmit="createProduct(event)" class="needs-validation" novalidate>
+                            <div class="mb-3">
+                                <label for="productName" class="form-label">Product Name</label>
+                                <input type="text" class="form-control" id="productName" 
+                                    placeholder="Enter product name" 
+                                    pattern="^[a-zA-Z0-9\s-]{3,50}$"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid product name (3-50 characters, alphanumeric)
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="productImage" class="form-label">Image</label>
+                                <input type="file" class="form-control" id="productImage" 
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Please select a valid image file (PNG, JPEG, JPG)
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="price" class="form-label">Price</label>
+                                <input type="number" class="form-control" id="price" 
+                                    placeholder="0.00" 
+                                    min="0.01" step="0.01" 
+                                    required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid price (greater than 0)
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" 
+                                    rows="3" 
+                                    placeholder="Enter product description" 
+                                    minlength="10" maxlength="500"
+                                    required></textarea>
+                                <div class="invalid-feedback">
+                                    Please enter a description (10-500 characters)
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="mfgDate" class="form-label">Manufacturing Date</label>
+                                <input type="date" class="form-control" id="mfgDate" 
+                                    max="<?php echo date('Y-m-d'); ?>"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Please select a valid manufacturing date (not in future)
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-control" id="category" required>
+                                    <option value="">Select a category</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Clothing">Clothing</option>
+                                    <option value="Food">Food</option>
+                                    <option value="Furniture">Furniture</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a category
+                                </div>
+                            </div>
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <label class="form-label">Type</label>
+                                    <div class="mb-2">
+                                        <input type="radio" class="form-check-input" name="type" value="retail" required>
+                                        <label class="form-check-label">Retail</label>
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="radio" class="form-check-input" name="type" value="wholesale">
+                                        <label class="form-check-label">Wholesale</label>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please select a product type
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <label class="form-label">Features</label>
+                                    <div class="mb-2">
+                                        <input type="checkbox" class="form-check-input" id="outOfStock">
+                                        <label class="form-check-label">Out of Stock</label>
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="checkbox" class="form-check-input" id="freeShipping">
+                                        <label class="form-check-label">Free Shipping</label>
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="checkbox" class="form-check-input" id="warranty">
+                                        <label class="form-check-label">Has Warranty</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">Create Product</button>
+                                <a href="index.html" class="btn btn-secondary">Back to List</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+    (() => {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+    </script>
+</body>
+</html>
