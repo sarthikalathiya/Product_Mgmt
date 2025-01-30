@@ -87,6 +87,18 @@ function deleteProduct(productId) {
     if (confirm('Are you sure you want to delete this product?')) {
         products = products.filter(p => p.productId !== productId);
         localStorage.setItem('products', JSON.stringify(products));
+        
+        // Update filtered products as well if search/filter is active
+        filteredProducts = filteredProducts.filter(p => p.productId !== productId);
+        
+        // Reset to first page if current page becomes empty
+        const displayList = filteredProducts.length > 0 ? filteredProducts : products;
+        const totalPages = Math.ceil(displayList.length / itemsPerPage);
+        if (currentPage > totalPages) {
+            currentPage = Math.max(1, totalPages);
+        }
+        
+        // Display the updated list
         displayProducts();
     }
 }
