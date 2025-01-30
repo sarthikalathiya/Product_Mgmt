@@ -1,4 +1,6 @@
 let products = JSON.parse(localStorage.getItem('products')) || [];
+let filteredProducts = [];
+let searchTimeout = null;
 
 let currentSort = {
     field: null,
@@ -34,7 +36,7 @@ function createProduct(event) {
         const reader = new FileReader();
         reader.onload = function (e) {
             product.image = e.target.result;
-            products.push(product);
+            products.unshift(product);
             localStorage.setItem('products', JSON.stringify(products));
             window.location.href = 'index.html';
         };
@@ -90,38 +92,44 @@ function deleteProduct(productId) {
 }
 
 function searchProduct() {
-    const searchTerm = document.getElementById('searchInput').value.trim();
-    const selectedCategory = document.getElementById('categoryFilter').value;
-
-    let filteredProducts = products;
-
-    if (selectedCategory) {
-        filteredProducts = filteredProducts.filter(p => p.category === selectedCategory);
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
     }
 
-    if (searchTerm) {
-        filteredProducts = filteredProducts.filter(p => {
-            if (/^\d/.test(searchTerm)) {
-                return p.productId.includes(searchTerm);
-            } else {
-                return p.productName.toLowerCase().includes(searchTerm.toLowerCase());
-            }
-        });
-    }
+    searchTimeout = setTimeout(() => {
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        const selectedCategory = document.getElementById('categoryFilter').value;
 
-    if (filteredProducts.length === 0) {
+        filteredProducts = [...products];
+
+        if (selectedCategory) {
+            filteredProducts = filteredProducts.filter(p => p.category === selectedCategory);
+        }
+
+        if (searchTerm) {
+            filteredProducts = filteredProducts.filter(p => {
+                if (/^\d/.test(searchTerm)) {
+                    return p.productId.includes(searchTerm);
+                } else {
+                    return p.productName.toLowerCase().includes(searchTerm.toLowerCase());
+                }
+            });
+        }
+
         currentPage = 1;
-    }
-    displayProducts(filteredProducts);
+        displayProducts(filteredProducts);
+    }, 300);
 }
 
-function displayProducts(productsToShow = products) {
+function displayProducts(productsToShow = null) {
     const tableBody = document.getElementById('productTableBody');
     const paginationControls = document.querySelector('.pagination-container');
 
     if (!tableBody) return;
 
-    if (!productsToShow || productsToShow.length === 0) {
+    const displayList = productsToShow || filteredProducts.length > 0 ? filteredProducts : products;
+
+    if (!displayList || displayList.length === 0) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="8" class="text-center py-4">
@@ -141,7 +149,7 @@ function displayProducts(productsToShow = products) {
 
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const paginatedProducts = productsToShow.slice(startIndex, endIndex);
+    const paginatedProducts = displayList.slice(startIndex, endIndex);
 
     document.getElementById('currentPage').textContent = `Page ${currentPage}`;
 
@@ -154,13 +162,12 @@ function displayProducts(productsToShow = products) {
                      class="img-thumbnail" 
                      style="width: 50px; height: 50px; object-fit: cover;">
             </td>
-            <td class="align-middle" style="width: 10%">$${product.price.toFixed(2)}</td>
+            <td class="align-middle" style="width: 10%">&#8377;${product.price.toFixed(2)}</td>
             <td class="align-middle text-break" style="width: 15%">${product.category}</td>
             <td class="align-middle" style="width: 10%">${product.type}</td>
             <td class="align-middle" style="width: 10%">${Object.entries(product.features)
             .filter(([, value]) => value)
-            .map(([key]) => `<span class="badge bg-secondary">${key}</span>`)
-            .join(' ')}</td>
+            .map(([key]) => `<span class="badge bg-secondary">${key}</span>`).join(' ')}</td>
             <td class="align-middle" style="width: 10%">
                 <div class="btn-group btn-group-sm">
                     <a href="edit-product.html?id=${product.productId}" class="btn btn-outline-primary">Edit</a>
@@ -170,7 +177,7 @@ function displayProducts(productsToShow = products) {
         </tr>
     `).join('');
 
-    updatePaginationState(productsToShow.length);
+    updatePaginationState(displayList.length);
 }
 
 function updatePaginationState(totalItems) {
@@ -183,9 +190,11 @@ function updatePaginationState(totalItems) {
 }
 
 function changePage(direction) {
-    if (!products || products.length === 0) return;
+    const displayList = filteredProducts.length > 0 ? filteredProducts : products;
+    
+    if (!displayList || displayList.length === 0) return;
 
-    const totalPages = Math.ceil(products.length / itemsPerPage);
+    const totalPages = Math.ceil(displayList.length / itemsPerPage);
 
     if (direction === 'prev' && currentPage > 1) {
         currentPage--;
@@ -285,10 +294,25 @@ function sortProducts(field) {
         currentSort.direction = 'asc';
     }
 
-    products.sort((a, b) => {
+    const listToSort = filteredProducts.length > 0 ? filteredProducts : products;
+    
+    listToSort.sort((a, b) => {
+        let valueA = a[field];
+        let valueB = b[field];
+
+        // Handle numeric values
+        if (field === 'price') {
+            valueA = parseFloat(valueA);
+            valueB = parseFloat(valueB);
+        } else {
+            // Handle string values
+            valueA = String(valueA).toLowerCase();
+            valueB = String(valueB).toLowerCase();
+        }
+
         let comparison = 0;
-        if (a[field] < b[field]) comparison = -1;
-        if (a[field] > b[field]) comparison = 1;
+        if (valueA < valueB) comparison = -1;
+        if (valueA > valueB) comparison = 1;
 
         return currentSort.direction === 'asc' ? comparison : -comparison;
     });
@@ -299,16 +323,32 @@ function sortProducts(field) {
 }
 
 function updateSortIndicators() {
-    document.querySelectorAll('th').forEach(th => {
-        th.textContent = th.textContent.replace(' ↑', '').replace(' ↓', '');
-    });
-
-    if (currentSort.field) {
-        const th = document.querySelector(`th[onclick="sortProducts('${currentSort.field}')"]`);
-        if (th) {
+    document.querySelectorAll('th[onclick^="sortProducts"]').forEach(th => {
+        // Remove existing sort indicators
+        th.textContent = th.textContent.replace(' ⇅', '').replace(' ↑', '').replace(' ↓', '');
+        
+        // Get the field name from the onclick attribute
+        const field = th.getAttribute('onclick').match(/sortProducts\('(.+?)'\)/)[1];
+        
+        if (field === currentSort.field) {
+            // Add new sort indicator
             th.textContent += currentSort.direction === 'asc' ? ' ↑' : ' ↓';
+        } else {
+            // Add neutral indicator for sortable columns
+            th.textContent += ' ⇅';
         }
-    }
+    });
+}
+
+function initializeProducts() {
+    // Sort by newest first initially
+    currentSort.field = 'productId';
+    currentSort.direction = 'desc';
+    
+    products.sort((a, b) => b.productId - a.productId);
+    filteredProducts = [...products];
+    displayProducts();
+    updateSortIndicators();
 }
 
 const PageController = {
@@ -352,7 +392,7 @@ const IndexPage = {
             });
         }
 
-        displayProducts();
+        initializeProducts();
     }
 };
 
