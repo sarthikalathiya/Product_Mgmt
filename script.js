@@ -9,6 +9,7 @@ let currentSort = {
 
 let currentPage = 1;
 let itemsPerPage = 5;
+let productModal = null;
 
 function generateProductId() {
     return Date.now().toString();
@@ -166,7 +167,8 @@ function displayProducts(productsToShow = null) {
     document.getElementById('currentPage').textContent = `Page ${currentPage}`;
 
     tableBody.innerHTML = paginatedProducts.map(product => `
-        <tr class="align-middle" style="height: 60px;">
+        <tr class="align-middle product-row" style="height: 60px; cursor: pointer;" 
+            onclick="showProductDetails('${product.productId}')">
             <td class="align-middle text-break" style="width: 15%">${product.productId}</td>
             <td class="align-middle text-break" style="width: 20%">${product.productName}</td>
             <td class="align-middle" style="width: 10%">
@@ -178,9 +180,9 @@ function displayProducts(productsToShow = null) {
             <td class="align-middle text-break" style="width: 15%">${product.category}</td>
             <td class="align-middle" style="width: 10%">${product.type}</td>
             <td class="align-middle" style="width: 10%">${Object.entries(product.features)
-            .filter(([, value]) => value)
-            .map(([key]) => `<span class="badge bg-secondary">${key}</span>`).join(' ')}</td>
-            <td class="align-middle" style="width: 10%">
+                .filter(([, value]) => value)
+                .map(([key]) => `<span class="badge bg-secondary">${key}</span>`).join(' ')}</td>
+            <td class="align-middle" style="width: 10%" onclick="event.stopPropagation()">
                 <div class="btn-group btn-group-sm">
                     <a href="edit-product.html?id=${product.productId}" class="btn btn-outline-primary">Edit</a>
                     <button onclick="deleteProduct('${product.productId}')" class="btn btn-outline-danger">Delete</button>
@@ -363,6 +365,9 @@ const PageController = {
 // Index page controller
 const IndexPage = {
     init() {
+        // Initialize Bootstrap modal
+        productModal = new bootstrap.Modal(document.getElementById('productDetailsModal'));
+
         const searchInput = document.getElementById('searchInput');
         const categoryFilter = document.getElementById('categoryFilter');
 
@@ -452,7 +457,7 @@ const EditPage = {
     }
 };
 
-// Create page controller
+
 const CreatePage = {
     init() {
         const form = document.getElementById('productForm');
@@ -480,3 +485,64 @@ PageController.register('create-product.html', () => CreatePage.init());
 
 // Initialize on DOM content loaded
 document.addEventListener('DOMContentLoaded', () => PageController.init());
+
+function showProductDetails(productId) {
+    const product = products.find(p => p.productId === productId);
+    if (!product) return;   
+
+    const formattedDate = new Date(product.mfgDate).toLocaleDateString();
+    const features = Object.entries(product.features)
+        .filter(([, value]) => value)
+        .map(([key]) => `<span class="badge bg-secondary me-1">${key}</span>`)
+        .join('');
+
+    document.getElementById('productDetailsContent').innerHTML = `
+        <div class="row g-3">
+            <div class="col-md-4 text-center">
+                <img src="${product.image}" alt="${product.productName}" 
+                     class="img-fluid rounded mb-3" 
+                     style="max-height: 200px; object-fit: contain;">
+            </div>
+            <div class="col-md-8">
+                <table class="table table-borderless product-table mb-0">
+                    <tbody>
+                        <tr>
+                            <th style="width: 150px;">Product ID:</th>
+                            <td>${product.productId}</td>
+                        </tr>
+                        <tr>
+                            <th>Product Name:</th>
+                            <td>${product.productName}</td>
+                        </tr>
+                        <tr>
+                            <th>Price:</th>
+                            <td>₹${product.price.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <th>Category:</th>
+                            <td>${product.category}</td>
+                        </tr>
+                        <tr>
+                            <th>Type:</th>
+                            <td>${product.type}</td>
+                        </tr>
+                        <tr>
+                            <th>Mfg. Date:</th>
+                            <td>${formattedDate}</td>
+                        </tr>
+                        <tr>
+                            <th>Features:</th>
+                            <td>${features}</td>
+                        </tr>
+                        <tr>
+                            <th>Description:</th>
+                            <td class="product-description">${product.description}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    productModal.show();
+}
