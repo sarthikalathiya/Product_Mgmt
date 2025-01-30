@@ -317,27 +317,8 @@ function sortProducts(field) {
         return currentSort.direction === 'asc' ? comparison : -comparison;
     });
 
-    updateSortIndicators();
     currentPage = 1;
     displayProducts();
-}
-
-function updateSortIndicators() {
-    document.querySelectorAll('th[onclick^="sortProducts"]').forEach(th => {
-        // Remove existing sort indicators
-        th.textContent = th.textContent.replace(' ⇅', '').replace(' ↑', '').replace(' ↓', '');
-        
-        // Get the field name from the onclick attribute
-        const field = th.getAttribute('onclick').match(/sortProducts\('(.+?)'\)/)[1];
-        
-        if (field === currentSort.field) {
-            // Add new sort indicator
-            th.textContent += currentSort.direction === 'asc' ? ' ↑' : ' ↓';
-        } else {
-            // Add neutral indicator for sortable columns
-            th.textContent += ' ⇅';
-        }
-    });
 }
 
 function initializeProducts() {
@@ -348,7 +329,6 @@ function initializeProducts() {
     products.sort((a, b) => b.productId - a.productId);
     filteredProducts = [...products];
     displayProducts();
-    updateSortIndicators();
 }
 
 const PageController = {
