@@ -101,7 +101,9 @@ function createProduct(event) {
             product.image = e.target.result;
             products.unshift(product);
             localStorage.setItem('products', JSON.stringify(products));
-            window.location.href = 'index.html';
+            
+            // Clear form data from browser's history
+            window.location.replace('index.html');
         };
         reader.readAsDataURL(imageFile);
     });
@@ -136,13 +138,13 @@ function updateProduct(event) {
                 updatedProduct.image = e.target.result;
                 products[productIndex] = updatedProduct;
                 localStorage.setItem('products', JSON.stringify(products));
-                window.location.href = 'index.html';
+                window.location.replace('index.html'); // Changed from href to replace
             };
             reader.readAsDataURL(imageFile);
         } else {
             products[productIndex] = updatedProduct;
             localStorage.setItem('products', JSON.stringify(products));
-            window.location.href = 'index.html';
+            window.location.replace('index.html'); // Changed from href to replace
         }
     }
 }
