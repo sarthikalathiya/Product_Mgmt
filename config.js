@@ -1,4 +1,4 @@
-const CONFIG = {
+const AppConfig = {
     categories: [
         { id: 'electronics', label: 'Electronics' },
         { id: 'clothing', label: 'Clothing' },
