@@ -352,39 +352,39 @@ function generateFormFields(formElement, isEdit = false, callback) {
 
     dynamicFields.innerHTML = '';
 
-    const fields = [
-        { id: 'productName', label: 'Product Name', type: 'text', required: true },
-        { id: 'productImage', label: 'Product Image', type: 'file', accept: 'image/*' },
-        { id: 'price', label: 'Price', type: 'number', required: true, step: '0.01' },
-        { id: 'description', label: 'Description', type: 'textarea', required: true },
-        { id: 'mfgDate', label: 'Manufacturing Date', type: 'date', required: true }
-    ];
-
-    fields.forEach(field => {
+    Object.entries(AppConfig.formFields).forEach(([fieldId, fieldConfig]) => {
         const div = document.createElement('div');
         div.className = 'mb-3';
 
         const label = document.createElement('label');
         label.className = 'form-label';
-        label.htmlFor = field.id;
-        label.textContent = field.label;
+        label.htmlFor = fieldId;
+        label.textContent = fieldConfig.label;
 
         let input;
-        if (field.type === 'textarea') {
+        if (fieldConfig.type === 'textarea') {
             input = document.createElement('textarea');
             input.rows = 3;
         } else {
             input = document.createElement('input');
-            input.type = field.type;
+            input.type = fieldConfig.type;
         }
 
         input.className = 'form-control';
-        input.id = field.id;
-        if (field.required) input.required = true;
-        if (field.step) input.step = field.step;
-        if (field.accept) input.accept = field.accept;
+        input.id = fieldId;
 
-        if (field.type === 'file') {
+        // Apply validation attributes
+        if (fieldConfig.validation) {
+            if (fieldConfig.validation.required) input.required = true;
+            if (fieldConfig.validation.pattern) input.pattern = fieldConfig.validation.pattern;
+            if (fieldConfig.validation.min) input.min = fieldConfig.validation.min;
+            if (fieldConfig.validation.step) input.step = fieldConfig.validation.step;
+            if (fieldConfig.validation.accept) input.accept = fieldConfig.validation.accept;
+            if (fieldConfig.validation.minLength) input.minLength = fieldConfig.validation.minLength;
+            if (fieldConfig.validation.maxLength) input.maxLength = fieldConfig.validation.maxLength;
+        }
+
+        if (fieldConfig.type === 'file') {
             input.addEventListener('change', function() {
                 validateFileInput();
             });
@@ -392,7 +392,7 @@ function generateFormFields(formElement, isEdit = false, callback) {
 
         const feedback = document.createElement('div');
         feedback.className = 'invalid-feedback';
-        feedback.textContent = `Please provide a valid ${field.label.toLowerCase()}`;
+        feedback.textContent = fieldConfig.validation?.errorMessage || `Please provide a valid ${fieldConfig.label.toLowerCase()}`;
 
         div.appendChild(label);
         div.appendChild(input);

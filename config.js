@@ -40,7 +40,7 @@ const AppConfig = {
                 min: 0.01,
                 step: 0.01,
                 required: true,
-                errorMessage: 'Please enter a valid price'
+                errorMessage: 'Please enter a valid price (must be greater than 0)'
             }
         },
         description: {
