@@ -7,7 +7,7 @@ let debounceTimer = null;
 let currentSort = {
     field: null,
     direction: 'asc'
-};          
+};
 
 let currentPage = 1;
 let itemsPerPage = 5;
@@ -90,17 +90,17 @@ function deleteProduct(productId) {
     if (confirm('Are you sure you want to delete this product?')) {
         products = products.filter(p => p.productId !== productId);
         localStorage.setItem('products', JSON.stringify(products));
-        
+
         // Update filtered products as well if search/filter is active
         filteredProducts = filteredProducts.filter(p => p.productId !== productId);
-        
+
         // Reset to first page if current page becomes empty
         const displayList = filteredProducts.length > 0 ? filteredProducts : products;
         const totalPages = Math.ceil(displayList.length / itemsPerPage);
         if (currentPage > totalPages) {
             currentPage = Math.max(1, totalPages);
         }
-        
+
         // Display the updated list
         displayProducts();
     }
@@ -268,7 +268,7 @@ function updatePaginationState(totalItems) {
 
 function changePage(direction) {
     const displayList = filteredProducts.length > 0 ? filteredProducts : products;
-    
+
     if (!displayList || displayList.length === 0) return;
 
     const totalPages = Math.ceil(displayList.length / itemsPerPage);
@@ -372,7 +372,7 @@ function sortProducts(field) {
     }
 
     const listToSort = filteredProducts.length > 0 ? filteredProducts : products;
-    
+
     listToSort.sort((a, b) => {
         let valueA = a[field];
         let valueB = b[field];
@@ -402,7 +402,7 @@ function initializeProducts() {
     // Sort by newest first initially
     currentSort.field = 'productId';
     currentSort.direction = 'desc';
-    
+
     products.sort((a, b) => b.productId - a.productId);
     filteredProducts = [...products];
     displayProducts();
@@ -418,7 +418,7 @@ const PageController = {
     init() {
         const pagePath = window.location.pathname;
         const pageName = pagePath.split('/').pop() || 'index.html';
-        
+
         if (this.pages[pageName]) {
             this.pages[pageName]();
         }
@@ -445,7 +445,7 @@ const IndexPage = {
 
         const itemsPerPageSelect = document.getElementById('itemsPerPage');
         if (itemsPerPageSelect) {
-            itemsPerPageSelect.addEventListener('change', function() {
+            itemsPerPageSelect.addEventListener('change', function () {
                 itemsPerPage = parseInt(this.value);
                 currentPage = 1;
                 displayProducts();
@@ -462,7 +462,7 @@ const EditPage = {
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
         const product = products.find(p => p.productId === productId);
-        
+
         if (product) {
             this.initializeForm(product);
         }
@@ -551,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => PageController.init());
 
 function showProductDetails(productId) {
     const product = products.find(p => p.productId === productId);
-    if (!product) return;   
+    if (!product) return;
 
     const formattedDate = new Date(product.mfgDate).toLocaleDateString();
     const features = Object.entries(product.features)
@@ -560,7 +560,7 @@ function showProductDetails(productId) {
         .join('');
 
     const content = document.getElementById('productDetailsContent');
-    content.innerHTML = ""; 
+    content.innerHTML = "";
 
     const rowDiv = document.createElement('div');
     rowDiv.className = 'row g-3';
