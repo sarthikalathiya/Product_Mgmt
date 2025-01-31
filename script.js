@@ -17,8 +17,25 @@ function generateProductId() {
     return Date.now().toString();
 }
 
+function validateFileInput() {
+    const fileInput = document.getElementById('productImage');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        fileInput.setCustomValidity('Please select an image file');
+        return false;
+    }
+    fileInput.setCustomValidity('');
+    return true;
+}
+
 function createProduct(event) {
     event.preventDefault();
+    
+    // Validate file input
+    if (!validateFileInput()) {
+        document.getElementById('productForm').classList.add('was-validated');
+        return;
+    }
+
     const product = {
         productId: generateProductId(),
         productName: document.getElementById('productName').value,
@@ -35,16 +52,14 @@ function createProduct(event) {
     };
 
     const imageFile = document.getElementById('productImage').files[0];
-    if (imageFile) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            product.image = e.target.result;
-            products.unshift(product);
-            localStorage.setItem('products', JSON.stringify(products));
-            window.location.href = 'index.html';
-        };
-        reader.readAsDataURL(imageFile);
-    }
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        product.image = e.target.result;
+        products.unshift(product);
+        localStorage.setItem('products', JSON.stringify(products));
+        window.location.href = 'index.html';
+    };
+    reader.readAsDataURL(imageFile);
 }
 
 function updateProduct(event) {
@@ -319,6 +334,12 @@ function generateFormFields(formElement, isEdit = false, callback) {
         if (field.required) input.required = true;
         if (field.step) input.step = field.step;
         if (field.accept) input.accept = field.accept;
+
+        if (field.type === 'file') {
+            input.addEventListener('change', function() {
+                validateFileInput();
+            });
+        }
 
         const feedback = document.createElement('div');
         feedback.className = 'invalid-feedback';
