@@ -68,10 +68,21 @@
                 const fileInput = document.getElementById('productImage');
                 if (!fileInput.files || fileInput.files.length === 0) {
                     fileInput.setCustomValidity('Please select an image file');
-                } else if (!isValidImageFile(fileInput.files[0])) {
-                    fileInput.setCustomValidity('Please select a valid image file (JPEG, PNG, GIF)');
                 } else {
-                    fileInput.setCustomValidity('');
+                    isValidImageFile(fileInput.files[0], (isValid) => {
+                        if (!isValid) {
+                            fileInput.setCustomValidity('Please select a valid image file (JPEG, PNG, GIF)');
+                        } else {
+                            fileInput.setCustomValidity('');
+                        }
+
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    });
+                    return;
                 }
 
                 if (!form.checkValidity()) {
@@ -87,12 +98,16 @@
                 fileInput.addEventListener('change', function() {
                     if (!this.files || this.files.length === 0) {
                         this.setCustomValidity('Please select an image file');
-                    } else if (!isValidImageFile(this.files[0])) {
-                        this.setCustomValidity('Please select a valid image file (JPEG, PNG, GIF)');
                     } else {
-                        this.setCustomValidity('');
+                        isValidImageFile(this.files[0], (isValid) => {
+                            if (!isValid) {
+                                this.setCustomValidity('Please select a valid image file (JPEG, PNG, GIF)');
+                            } else {
+                                this.setCustomValidity('');
+                            }
+                            form.classList.add('was-validated');
+                        });
                     }
-                    form.classList.add('was-validated');
                 });
             }
         });

@@ -17,49 +17,90 @@ function generateProductId() {
     return Date.now().toString();
 }
 
-function validateFileInput() {
+function validateFileInput(callback) {
     const fileInput = document.getElementById('productImage');
     if (!fileInput.files || fileInput.files.length === 0) {
         fileInput.setCustomValidity('Please select an image file');
-        return false;
+        callback(false);
+        return;
     }
-    fileInput.setCustomValidity('');
-    return true;
+    isValidImageFile(fileInput.files[0], (isValid) => {
+        if (!isValid) {
+            fileInput.setCustomValidity('Please select a valid image file (JPEG, PNG, GIF)');
+            callback(false);
+        } else {
+            fileInput.setCustomValidity('');
+            callback(true);
+        }
+    });
+}
+
+function isValidImageFile(file, callback) {
+    const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const reader = new FileReader();
+    reader.onloadend = function (e) {
+        const arr = (new Uint8Array(e.target.result)).subarray(0, 4);
+        let header = "";
+        for (let i = 0; i < arr.length; i++) {
+            header += arr[i].toString(16);
+        }
+        let mimeType;
+        switch (header) {
+            case "89504e47":
+                mimeType = "image/png";
+                break;
+            case "47494638":
+                mimeType = "image/gif";
+                break;
+            case "ffd8ffe0":
+            case "ffd8ffe1":
+            case "ffd8ffe2":
+                mimeType = "image/jpeg";
+                break;
+            default:
+                mimeType = "unknown";
+                break;
+        }
+        callback(validMimeTypes.includes(mimeType));
+    };
+    reader.readAsArrayBuffer(file);
 }
 
 function createProduct(event) {
     event.preventDefault();
     
     // Validate file input
-    if (!validateFileInput()) {
-        document.getElementById('productForm').classList.add('was-validated');
-        return;
-    }
-
-    const product = {
-        productId: generateProductId(),
-        productName: document.getElementById('productName').value,
-        price: parseFloat(document.getElementById('price').value),
-        description: document.getElementById('description').value,
-        mfgDate: document.getElementById('mfgDate').value,
-        category: document.getElementById('category').value,
-        type: document.querySelector('input[name="type"]:checked').value,
-        features: {
-            outOfStock: document.getElementById('outOfStock').checked,
-            freeShipping: document.getElementById('freeShipping').checked,
-            warranty: document.getElementById('warranty').checked
+    validateFileInput((isValid) => {
+        if (!isValid) {
+            document.getElementById('productForm').classList.add('was-validated');
+            return;
         }
-    };
 
-    const imageFile = document.getElementById('productImage').files[0];
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        product.image = e.target.result;
-        products.unshift(product);
-        localStorage.setItem('products', JSON.stringify(products));
-        window.location.href = 'index.html';
-    };
-    reader.readAsDataURL(imageFile);
+        const product = {
+            productId: generateProductId(),
+            productName: document.getElementById('productName').value,
+            price: parseFloat(document.getElementById('price').value),
+            description: document.getElementById('description').value,
+            mfgDate: document.getElementById('mfgDate').value,
+            category: document.getElementById('category').value,
+            type: document.querySelector('input[name="type"]:checked').value,
+            features: {
+                outOfStock: document.getElementById('outOfStock').checked,
+                freeShipping: document.getElementById('freeShipping').checked,
+                warranty: document.getElementById('warranty').checked
+            }
+        };
+
+        const imageFile = document.getElementById('productImage').files[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            product.image = e.target.result;
+            products.unshift(product);
+            localStorage.setItem('products', JSON.stringify(products));
+            window.location.href = 'index.html';
+        };
+        reader.readAsDataURL(imageFile);
+    });
 }
 
 function updateProduct(event) {
@@ -120,7 +161,7 @@ function deleteProduct(productId) {
         displayProducts();
     }
 }
-
+ 
 function searchProduct() {
     if (debounceTimer) {
         clearTimeout(debounceTimer);
