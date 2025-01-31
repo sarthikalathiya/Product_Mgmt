@@ -1,5 +1,6 @@
 "use strict";
 
+// Global State Variables
 let products = JSON.parse(localStorage.getItem('products')) || [];
 let filteredProducts = [];
 let debounceTimer = null;
@@ -13,10 +14,12 @@ let currentPage = 1;
 let itemsPerPage = 5;
 let productModal = null;
 
+// Generates a unique product ID using timestamp
 function generateProductId() {
     return Date.now().toString();
 }
 
+//  Validates image file input
 function validateFileInput(callback) {
     const fileInput = document.getElementById('productImage');
     if (!fileInput.files || fileInput.files.length === 0) {
@@ -35,6 +38,7 @@ function validateFileInput(callback) {
     });
 }
 
+ // Checks if file is a valid image type
 function isValidImageFile(file, callback) {
     const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
     const reader = new FileReader();
@@ -103,6 +107,7 @@ function createProduct(event) {
     });
 }
 
+// Updates an existing product
 function updateProduct(event) {
     event.preventDefault();
     const productId = document.getElementById('productId').value;
@@ -142,6 +147,7 @@ function updateProduct(event) {
     }
 }
 
+// Deletes a product
 function deleteProduct(productId) {
     if (confirm('Are you sure you want to delete this product?')) {
         products = products.filter(p => p.productId !== productId);
@@ -161,7 +167,8 @@ function deleteProduct(productId) {
         displayProducts();
     }
 }
- 
+
+// Handles product search with debouncing
 function searchProduct() {
     if (debounceTimer) {
         clearTimeout(debounceTimer);
@@ -322,6 +329,7 @@ function updatePaginationState(totalItems) {
     nextButton.classList.toggle('disabled', currentPage === totalPages);
 }
 
+// Changes current page
 function changePage(direction) {
     const displayList = filteredProducts.length > 0 ? filteredProducts : products;
 
@@ -582,7 +590,7 @@ const EditPage = {
     }
 };
 
-
+// Create page controller
 const CreatePage = {
     init() {
         const form = document.getElementById('productForm');
@@ -611,6 +619,7 @@ PageController.register('create-product.html', () => CreatePage.init());
 // Initialize on DOM content loaded
 document.addEventListener('DOMContentLoaded', () => PageController.init());
 
+// Shows detailed product information in modal
 function showProductDetails(productId) {
     const product = products.find(p => p.productId === productId);
     if (!product) return;
