@@ -48,7 +48,11 @@ function displayProducts(productsToShow = null) {
         const productNameTd = document.createElement("td");
         productNameTd.className = "align-middle text-break";
         productNameTd.style.width = "20%";
-        productNameTd.textContent = product.productName;
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "truncate-name";
+        nameSpan.title = product.productName; // Show full name on hover
+        nameSpan.textContent = truncateText(product.productName, 30); // Truncate at 30 characters
+        productNameTd.appendChild(nameSpan);
         row.appendChild(productNameTd);
 
         const productImageTd = document.createElement("td");
@@ -188,7 +192,10 @@ function showProductDetails(productId) {
         { label: 'Type:', value: product.type },
         { label: 'Mfg. Date:', value: formattedDate },
         { label: 'Features:', value: features },
-        { label: 'Description:', value: product.description }
+        { 
+            label: 'Description:', 
+            value: `<div class="product-description">${product.description}</div>` 
+        }
     ];
 
     rows.forEach(row => {
