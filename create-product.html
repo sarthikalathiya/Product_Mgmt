@@ -59,8 +59,6 @@
                 </div>
             </div>
         </div>
-        <script src="config.js"></script>
-        <script src="script.js"></script>
         <script>
     (() => {
         'use strict';
@@ -94,7 +92,7 @@
                 }
                 form.classList.add('was-validated');
             }, false);
-
+ 
             // Add change event listener to file input
             const fileInput = document.getElementById('productImage');
             if (fileInput) {
@@ -116,5 +114,16 @@
         });
     })();
         </script>
+        <script src="js/config.js"></script>
+        <script src="js/utils.js"></script>
+        <script src="js/fileHandlers.js"></script>
+        <script src="js/formGenerators.js"></script>
+        <script src="js/productHandlers.js"></script>
+        <script src="js/uiHandlers.js"></script>
+        <script src="js/controllers/pageController.js"></script>
+        <script src="js/controllers/indexPage.js"></script>
+        <script src="js/controllers/createPage.js"></script>
+        <script src="js/controllers/editPage.js"></script>
+        <script src="js/main.js"></script>
     </body>
 </html>

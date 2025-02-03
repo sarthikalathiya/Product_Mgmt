@@ -57,9 +57,20 @@ const AppConfig = {
             type: 'date',
             label: 'Manufacturing Date',
             validation: {
+                max: new Date().toISOString().split('T')[0],
                 required: true,
                 errorMessage: 'Please select a manufacturing date'
             }
         }
     }
 };
+
+
+// Global State Variables
+let products = JSON.parse(localStorage.getItem('products')) || [];
+let filteredProducts = [];
+let debounceTimer = null;
+let currentSort = { field: null, direction: 'asc' };
+let currentPage = 1;
+let itemsPerPage = 5;
+let productModal = null;
