@@ -21,6 +21,7 @@ const AppConfig = {
             validation: {
                 pattern: '^[a-zA-Z0-9\\s-]{3,50}$',
                 required: true,
+                maxLength: 100,
                 errorMessage: 'Please enter a valid product name (3-50 characters, alphanumeric)'
             }
         },
