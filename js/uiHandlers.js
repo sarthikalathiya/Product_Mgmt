@@ -103,7 +103,7 @@ function displayProducts(productsToShow = null) {
         btnGroup.className = "btn-group btn-group-sm";
 
         const editLink = document.createElement("a");
-        editLink.href = `edit-product.html?id=${product.productId}`;
+        editLink.href = `editProduct.html?id=${product.productId}`;
         editLink.className = "btn btn-outline-primary";
         editLink.textContent = "Edit";
         btnGroup.appendChild(editLink);
